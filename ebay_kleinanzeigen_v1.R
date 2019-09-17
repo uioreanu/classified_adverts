@@ -58,7 +58,28 @@ while (fileURL_keepLooping == TRUE) {
 
 summary(dat_final)
 
-dat_final %>% 
-  rownames_to_column("when") %>% 
-  filter(stringr::str_detect(type, 'Heute|Gestern') )
+# dat_final %>% 
+#   filter(stringr::str_detect(when, 'Heute|Gestern') ) %>%
+#   arrange(price)
+# 
+# dat_final %>% 
+#   filter(stringr::str_detect(when, '2019') ) %>%
+#   arrange(price)
 
+
+dat_final <- dat_final %>%
+  mutate(date = case_when(
+    grepl("Heute", when) ~ Sys.Date(),
+    grepl("Gestern", when) ~ Sys.Date()-1,
+    TRUE ~ as.Date(when, " %d.%m.%Y")
+  ))
+           
+  #  str_replace(when, c("Heute", Sys.Date(), "Gestern", Sys.Date()-1 )))
+  # mutate(date = as.Date(dat_final$when, " %d.%m.%Y")) %>% tail(25)
+
+dat_final %>%
+  filter(!is.na(price)) %>%
+  ggplot(aes(y= price, x= date, label=name))+    
+      theme_bw() + 
+      geom_point() +geom_text(aes(label=ifelse(price>=100, name,'')),hjust=1, vjust=1) + 
+    ggtitle("Price as a function of ad age for 'Blu-Ray' items")
